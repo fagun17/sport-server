@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  email        String        @unique
+  name         String
+  password     String
+  key          Int?
+  key2         String?
+  images       String[]
+  exerciseLogs ExerciseLog[]
+
+  workoutLogs     WorkoutLog[]
+  competitionLogs CompetitionLog[]
+  tournamentLogs  TournamentLog[]
+  registerLogs    RegisterLog[]
+}
+
+model Workout {
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  name        String
+  workoutLogs WorkoutLog[]
+  exercises   Exercise[]   @relation("ExerciseToWorkout")
+}
+
+model Exercise {
+  id           Int           @id @default(autoincrement())
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  name         String
+  iconPath     String        @map("icon_path")
+  times        Int
+  exerciseLogs ExerciseLog[]
+  workouts     Workout[]     @relation("ExerciseToWorkout")
+}
+
+model Record {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  names        String
+  group        String?
+  lastNames    String
+  nameNames    String
+  viewHalls    String
+  typeWorkouts String
+  coaches      String
+  viewWorkouts String
+  dateTime     String
+  timeDate     String
+}
+
+model ExerciseLog {
+  id           Int            @id @default(autoincrement())
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  isCompleted  Boolean        @default(false) @map("is_comleted")
+  userId       Int?           @map("user_id")
+  workoutLogId Int?           @map("workout_log_id")
+  exerciseId   Int?           @map("exercise_id")
+  exercise     Exercise?      @relation(fields: [exerciseId], references: [id])
+  user         User?          @relation(fields: [userId], references: [id])
+  workoutLog   WorkoutLog?    @relation(fields: [workoutLogId], references: [id])
+  times        ExerciseTime[]
+
+  @@map("Exercise_log")
+}
+
+model ExerciseTime {
+  id            Int          @id @default(autoincrement())
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  weight        Int          @default(0)
+  repeat        Int          @default(0)
+  isCompleted   Boolean      @default(false) @map("is_comleted")
+  exerciseLogId Int?         @map("exercise_log_id")
+  exerciseLog   ExerciseLog? @relation(fields: [exerciseLogId], references: [id])
+
+  @@map("Exercise_time")
+}
+
+model WorkoutLog {
+  id           Int           @id @default(autoincrement())
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  isCompleted  Boolean       @default(false) @map("is_comleted")
+  userId       Int?          @map("user_id")
+  workoutId    Int?          @map("workout_id")
+  exerciseLogs ExerciseLog[]
+  user         User?         @relation(fields: [userId], references: [id])
+  workout      Workout?      @relation(fields: [workoutId], references: [id])
+
+  @@map("Workout_log")
+}
+
+model Competition {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  name      String
+  iconSport String   @map("icon_sport")
+  times     Int
+
+  data            String
+  names           String
+  comandOne       String
+  comandTwo       String
+  tournaments     Tournament[]
+  competitionLogs CompetitionLog[]
+}
+
+// Workout = Tournament
+model Tournament {
+  id             Int             @id @default(autoincrement())
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  name           String
+  competitions   Competition[]
+  tournamentLogs TournamentLog[]
+  registrations  Register[]
+}
+
+// он же лог
+model Register {
+  id              Int              @id @default(autoincrement())
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  fullName        String
+  tabNumber       String
+  scores          Int?
+  height          Int?
+  prioritet       Int?
+  // надо
+  tournaments     Tournament[]
+  registerLogs    RegisterLog[]
+  competitionLogs CompetitionLog[]
+}
+
+model CompetitionLog {
+  id              Int               @id @default(autoincrement())
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  isCompleted     Boolean           @default(false) @map("is_completed")
+  times           CompetitionTime[]
+  //
+  tournamentLog   TournamentLog?    @relation(fields: [tournamentLogId], references: [id])
+  tournamentLogId Int?              @map("tournament_log_id")
+  //
+  competition     Competition?      @relation(fields: [competitionId], references: [id])
+  competitionId   Int?              @map("competition_id")
+  //
+  user            User?             @relation(fields: [userId], references: [id])
+  userId          Int?              @map("user_id")
+  Register        Register?         @relation(fields: [registerId], references: [id])
+  registerId      Int?
+}
+
+model CompetitionTime {
+  id               Int             @id @default(autoincrement())
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  comandOne        Int             @default(0)
+  comandTwo        Int             @default(0)
+  isCompleted      Boolean         @default(false) @map("is_completed")
+  competitionLog   CompetitionLog? @relation(fields: [competitionLogId], references: [id])
+  competitionLogId Int?            @map("competition_log_id")
+
+  @@map("Competition_time")
+}
+
+model RegisterLog {
+  id              Int            @id @default(autoincrement())
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  isCompleted     Boolean        @default(false) @map("is_completed")
+  //
+  register        Register?      @relation(fields: [registerId], references: [id])
+  registerId      Int?           @map("register_id")
+  //
+  tournamentLog   TournamentLog? @relation(fields: [tournamentLogId], references: [id])
+  tournamentLogId Int?           @map("tournament_log_id")
+  //
+  user            User?          @relation(fields: [userId], references: [id])
+  userId          Int?           @map("user_id")
+
+  @@map("Register_log")
+}
+
+// WorkoutLog = TournamentLog
+model TournamentLog {
+  id              Int              @id @default(autoincrement())
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  isCompleted     Boolean          @default(false) @map("is_completed")
+  // привязка к юзеру
+  userId          Int?             @map("user_id")
+  tournamentId    Int?             @map("tournament_id")
+  // связь с логами соревнований
+  competitionLogs CompetitionLog[]
+  registerLogs    RegisterLog[]
+  user            User?            @relation(fields: [userId], references: [id])
+
+  tournament Tournament? @relation(fields: [tournamentId], references: [id])
+
+  @@map("Tournament_log")
+}
